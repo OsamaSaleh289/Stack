@@ -19,16 +19,16 @@ public class GameManager : MonoBehaviour
     private float originalX = 3.5f;
     private float originalZ = 3.5f;
 
-   // public bool emergingFromX;
-   // public bool emergingFromZ;
-
-
+    [Header("Visuals")]
+    public Color _color;
+    private ColorChange colorChange;
 
 
     void Start()
     {
         bActive = true;
         switcher = 0;
+        colorChange = GetComponent<ColorChange>();
     }
 
     void Update()
@@ -39,9 +39,13 @@ public class GameManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && !_cube)
             {
                 _cube = Instantiate(cube, CubesParent); //use CreatePrimitive here instead
+                if (switcher == 0)
+                    _cube.transform.position = new Vector3(0, 0, initialPos);
+                else
+                    _cube.transform.position = new Vector3(-initialPos, 0, 0);
             }
 
-            if (_cube)
+            else if (_cube)
             {
                 if (_cube.transform.position.z < -CubesParent.GetChild(0).localScale.z)
                     Lose(_cube);
@@ -63,36 +67,21 @@ public class GameManager : MonoBehaviour
                         _cube.transform.position = new Vector3(zPos, CubesParent.GetChild(CubesParent.childCount - 2).position.y + cube.transform.localScale.y, 0);
                 }
 
-                if (Input.GetMouseButtonDown(0)) //merge these 2 ifs
+                if (Input.GetMouseButtonDown(0) && _cube.transform.position.z > -3.5f && _cube.transform.position.z < 3.5f) //merge these 2 ifs
                 {
-                    
-                    if (_cube.transform.position.z > -3.5f && _cube.transform.position.z < 3.5f)
-                    {
-                        /*if (emergingFromX)
-                        {
-                            emergingFromX = false;
-                            emergingFromZ = true;
-                        }
-                        else
-                        {
-                            emergingFromZ = false;
-                            emergingFromX = true;
-                        }*/
-                        //0 = EmergingFromZ
-                        //1 = EmergingFromX
-                        if (switcher == 0)
-                            switcher = 1;
-                        else
-                            switcher = 0;
-                        chopOff(_cube);
-                        _cube = Instantiate(cube, CubesParent); //use CreatePrimitive here instead
-                        chopOff(_cube);
-                        if (switcher == 0)
-                            _cube.transform.position = new Vector3(0, 0, initialPos);
-                        else
-                            _cube.transform.position = new Vector3(-initialPos, 0, 0);
-
-                    }
+                    if (switcher == 0)
+                        switcher = 1;
+                    else
+                        switcher = 0;
+                    chopOff(_cube);
+                    _cube = Instantiate(cube, CubesParent); //use CreatePrimitive here instead
+                    _color = colorChange.tempColor;
+                    _cube.GetComponent<Renderer>().material.color = _color;
+                    chopOff(_cube);
+                    if (switcher == 0)
+                        _cube.transform.position = new Vector3(0, 0, initialPos);
+                    else
+                        _cube.transform.position = new Vector3(-initialPos, 0, 0);
                 }
             }
         }
@@ -111,7 +100,6 @@ public class GameManager : MonoBehaviour
             originalZ -= 1f;
         }
         //Add rigid body component and add useGravityOn
-
 
     }
 
