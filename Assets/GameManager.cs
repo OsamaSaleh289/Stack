@@ -23,6 +23,8 @@ public class GameManager : MonoBehaviour
     public Color _color;
     private ColorChange colorChange;
 
+    private Vector3 nextScale = new Vector3(3.5f, 0.2f, 3.5f);
+
 
     void Start()
     {
@@ -38,7 +40,7 @@ public class GameManager : MonoBehaviour
             //Trigger on mouse click and when cube is non-existent
             if (Input.GetMouseButtonDown(0) && !_cube)
             {
-                _cube = Instantiate(cube, CubesParent); //use CreatePrimitive here instead
+                SpawnCube(nextScale, _color);
                 if (switcher == 0)
                     _cube.transform.position = new Vector3(0, 0, initialPos);
                 else
@@ -74,9 +76,9 @@ public class GameManager : MonoBehaviour
                     else
                         switcher = 0;
                     chopOff(_cube);
-                    _cube = Instantiate(cube, CubesParent); //use CreatePrimitive here instead
                     _color = colorChange.tempColor;
-                    _cube.GetComponent<Renderer>().material.color = _color;
+                    SpawnCube(nextScale, _color);
+
                     chopOff(_cube);
                     if (switcher == 0)
                         _cube.transform.position = new Vector3(0, 0, initialPos);
@@ -93,12 +95,21 @@ public class GameManager : MonoBehaviour
     {
         //Coming from x direction => Chop x
         if (switcher == 0) {
-            _cube.transform.localScale = new Vector3(originalX - 1f, _cube.transform.localScale.y, originalZ);
+
+            nextScale = new Vector3(originalX - 1f, _cube.transform.localScale.y, originalZ);
+            //_cube.transform.localScale = new Vector3(originalX - 1f, _cube.transform.localScale.y, originalZ);
+            _cube.transform.localScale = nextScale;
             originalX -= 1f;
         } else {
-            _cube.transform.localScale = new Vector3(originalX, _cube.transform.localScale.y, originalZ - 1f);
+            nextScale = new Vector3(originalX, _cube.transform.localScale.y, originalZ - 1f);
+            //_cube.transform.localScale = new Vector3(originalX, _cube.transform.localScale.y, originalZ - 1f);
+            _cube.transform.localScale = nextScale;
             originalZ -= 1f;
         }
+
+
+
+
         //Add rigid body component and add useGravityOn
 
     }
@@ -115,5 +126,18 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(3);
         Destroy(_cube);
+    }
+
+    public void SpawnCube(Vector3 size, Color _color) //spawns a cube(tempCube) inside a parent gameobject(_cube) and handles the size and color
+    {
+        _cube = Instantiate(new GameObject());
+        Rigidbody rb = _cube.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        tempCube.transform.parent = _cube.transform;
+        tempCube.GetComponent<Renderer>().material.color = _color;
+        _cube.transform.localScale = size;
+        _cube.transform.parent = CubesParent;
     }
 }
