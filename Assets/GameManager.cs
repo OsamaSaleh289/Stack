@@ -1,7 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
- 
+using System;
+
 public class GameManager : MonoBehaviour
 {
     public GameObject cube;
@@ -18,6 +19,16 @@ public class GameManager : MonoBehaviour
 
     private float originalX = 3.5f;
     private float originalZ = 3.5f;
+    private float valueToChopOff;
+    private Transform bottomCube;
+    private float bottomCubeRightEdge;
+    private float bottomCubeLeftEdge;
+    private string chopAxis;
+    private float leftEdgeXCoord;
+    private float leftEdgeZCoord;
+    private float xRef;
+    private float zRef;
+
 
     [Header("Visuals")]
     public Color _color;
@@ -91,26 +102,102 @@ public class GameManager : MonoBehaviour
 
 
 
-    public void chopOff(GameObject _cube)
+    public void chopOff(GameObject _parentCube)
     {
         //Coming from x direction => Chop x
-        if (switcher == 0) {
+        if (switcher == 0)
+        {
+            leftEdgeXCoord = _parentCube.transform.position.x;
+            if (leftEdgeXCoord + _parentCube.transform.localScale.x > CubesParent.GetChild(CubesParent.childCount - 2).position.x + (CubesParent.GetChild(CubesParent.childCount - 2).localScale.x / 2))
+            {
+                chopOffRight(_parentCube, "x");
+            }
+            else
+            {
+                chopOffLeft(_parentCube, "x");
+            }
 
-            nextScale = new Vector3(originalX - 1f, _cube.transform.localScale.y, originalZ);
-            //_cube.transform.localScale = new Vector3(originalX - 1f, _cube.transform.localScale.y, originalZ);
-            _cube.transform.localScale = nextScale;
-            originalX -= 1f;
-        } else {
-            nextScale = new Vector3(originalX, _cube.transform.localScale.y, originalZ - 1f);
-            //_cube.transform.localScale = new Vector3(originalX, _cube.transform.localScale.y, originalZ - 1f);
-            _cube.transform.localScale = nextScale;
-            originalZ -= 1f;
+        }
+        //Coming from z direction => Chop z
+        else
+        {
+            leftEdgeZCoord = _parentCube.transform.position.z;
+            if (leftEdgeZCoord + _parentCube.transform.localScale.z < CubesParent.GetChild(CubesParent.childCount - 2).position.z + (CubesParent.GetChild(CubesParent.childCount - 2).localScale.z / 2))
+            {
+                chopOffRight(_parentCube, "z");
+
+
+            }
+            else
+            {
+                chopOffLeft(_parentCube, "z");
+            }
         }
 
-
-
-
         //Add rigid body component and add useGravityOn
+
+    }
+
+    public void chopOffLeft(GameObject _parentCube, string chopAxis)
+    {
+
+        bottomCube = CubesParent.GetChild(CubesParent.childCount - 2);
+        if (chopAxis == "x")
+        {
+            bottomCubeLeftEdge = (bottomCube.position.x - bottomCube.localScale.x / 2);
+            //Distance between the bottom cube's right edge and the current cube's right edge
+            valueToChopOff = System.Math.Abs(bottomCubeLeftEdge - (_parentCube.transform.position.x + _parentCube.transform.localScale.x));
+            //Shift right then chop
+            xRef = _parentCube.transform.position.x;
+            xRef += valueToChopOff;
+            nextScale = new Vector3(originalX - valueToChopOff, _parentCube.transform.localScale.y, originalZ);
+            _parentCube.transform.localScale = nextScale;
+            originalX -= valueToChopOff;
+        }
+        else
+        {
+            bottomCubeLeftEdge = (bottomCube.position.z - bottomCube.localScale.z / 2);
+            //Distance between the bottom cube's right edge and the current cube's right edge
+            valueToChopOff = Math.Abs(bottomCubeLeftEdge - (_parentCube.transform.position.z + _parentCube.transform.localScale.z));
+            zRef = _parentCube.transform.position.z;
+            zRef += valueToChopOff;
+            nextScale = new Vector3(originalX, _parentCube.transform.localScale.y, originalZ - valueToChopOff);
+            originalZ -= valueToChopOff;
+
+
+        }
+        _parentCube.transform.localScale = nextScale;
+
+
+
+    }
+
+    public void chopOffRight(GameObject _parentCube, string chopAxis)
+    {
+        bottomCube = CubesParent.GetChild(CubesParent.childCount - 2);
+        if (chopAxis == "x")
+        {
+            bottomCubeRightEdge = (bottomCube.position.x + bottomCube.localScale.x / 2);
+            //Distance between the bottom cube's right edge and the current cube's right edge
+            valueToChopOff = Math.Abs(bottomCubeRightEdge - (_parentCube.transform.position.x + _parentCube.transform.localScale.x));
+
+            nextScale = new Vector3(originalX - valueToChopOff, _parentCube.transform.localScale.y, originalZ);
+            originalX -= valueToChopOff;
+        }
+        else
+        {
+            bottomCubeRightEdge = (bottomCube.position.z + bottomCube.localScale.z / 2);
+            //Distance between the bottom cube's right edge and the current cube's right edge
+            valueToChopOff = Math.Abs(bottomCubeRightEdge - (_parentCube.transform.position.z + _parentCube.transform.localScale.z));
+
+            nextScale = new Vector3(originalX, _parentCube.transform.localScale.y, originalZ - valueToChopOff);
+            originalZ -= valueToChopOff;
+
+
+        }
+        _parentCube.transform.localScale = nextScale;
+
+
 
     }
 
