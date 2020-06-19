@@ -570,7 +570,7 @@ MonoBehaviour:
   StartCube: {fileID: 580529643}
   CubesParent: {fileID: 2086859009}
   bActive: 0
-  switcher: 0
+  switcher: 1
   _color: {r: 0.7058824, g: 0.7058824, b: 0.7058824, a: 1}
 --- !u!4 &1129952751
 Transform:

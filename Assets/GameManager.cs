@@ -51,7 +51,8 @@ public class GameManager : MonoBehaviour
             //Trigger on mouse click and when cube is non-existent
             if (Input.GetMouseButtonDown(0) && !_cube)
             {
-                SpawnCube(nextScale, _color);
+                //SpawnCube(nextScale, _color);
+                SpawnCube2(nextScale, _color);
                 if (switcher == 0)
                     _cube.transform.position = new Vector3(0, 0, initialPos);
                 else
@@ -86,11 +87,13 @@ public class GameManager : MonoBehaviour
                         switcher = 1;
                     else
                         switcher = 0;
-                    chopOff(_cube);
+                    //chopOff(_cube);
                     _color = colorChange.tempColor;
-                    SpawnCube(nextScale, _color);
+                    //SpawnCube(nextScale, _color);
+                    SpawnCubeChopped(_cube);
+                    SpawnCube2(nextScale, _color);
 
-                    chopOff(_cube);
+                    //chopOff(_cube);
                     if (switcher == 0)
                         _cube.transform.position = new Vector3(0, 0, initialPos);
                     else
@@ -140,7 +143,7 @@ public class GameManager : MonoBehaviour
 
     public void chopOffLeft(GameObject _parentCube, string chopAxis)
     {
-
+        Debug.Log("reach1");
         bottomCube = CubesParent.GetChild(CubesParent.childCount - 2);
         if (chopAxis == "x")
         {
@@ -174,10 +177,11 @@ public class GameManager : MonoBehaviour
 
     public void chopOffRight(GameObject _parentCube, string chopAxis)
     {
+        Debug.Log("reach2");
         bottomCube = CubesParent.GetChild(CubesParent.childCount - 2);
         if (chopAxis == "x")
         {
-            bottomCubeRightEdge = (bottomCube.position.x + bottomCube.localScale.x / 2);
+            bottomCubeRightEdge = (bottomCube.position.x + bottomCube.localScale.x);
             //Distance between the bottom cube's right edge and the current cube's right edge
             valueToChopOff = Math.Abs(bottomCubeRightEdge - (_parentCube.transform.position.x + _parentCube.transform.localScale.x));
 
@@ -186,7 +190,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            bottomCubeRightEdge = (bottomCube.position.z + bottomCube.localScale.z / 2);
+            bottomCubeRightEdge = (bottomCube.position.z + bottomCube.localScale.z);
             //Distance between the bottom cube's right edge and the current cube's right edge
             valueToChopOff = Math.Abs(bottomCubeRightEdge - (_parentCube.transform.position.z + _parentCube.transform.localScale.z));
 
@@ -218,13 +222,85 @@ public class GameManager : MonoBehaviour
     public void SpawnCube(Vector3 size, Color _color) //spawns a cube(tempCube) inside a parent gameobject(_cube) and handles the size and color
     {
         _cube = Instantiate(new GameObject());
+        _cube.name = "test";
         Rigidbody rb = _cube.AddComponent<Rigidbody>();
         rb.isKinematic = true;
         rb.useGravity = false;
         GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        tempCube.name = "Test2";
         tempCube.transform.parent = _cube.transform;
+        if (switcher == 0)
+            tempCube.transform.position = new Vector3(0, 0, -tempCube.transform.localScale.z / 2);
+        else
+            tempCube.transform.position = new Vector3(0, 0, -tempCube.transform.localScale.z / 2);
         tempCube.GetComponent<Renderer>().material.color = _color;
         _cube.transform.localScale = size;
         _cube.transform.parent = CubesParent;
+    }
+
+    public void SpawnCube2(Vector3 size, Color _color) //testing other method of spawning and chopping
+    {
+        /*
+        _cube = Instantiate(new GameObject());
+        _cube.name = "test";
+        Rigidbody rb = _cube.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        */
+        _cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        _cube.name = "Test2";
+        _cube.transform.parent = _cube.transform;
+        _cube.GetComponent<Renderer>().material.color = _color;
+        _cube.transform.localScale = size;
+        _cube.transform.parent = CubesParent;
+    }
+
+    public void SpawnCubeChopped(GameObject currentCube)
+    {
+        Transform UnderCube = CubesParent.GetChild(CubesParent.childCount - 2).transform;
+
+        if (switcher == 0)
+        {
+            Vector3 CurrentCubeRightEdge = new Vector3(0, currentCube.transform.position.y, currentCube.transform.localScale.z / 2 + currentCube.transform.position.z);
+            Vector3 UnderCubeRightEdge = new Vector3(0, UnderCube.position.y, UnderCube.localScale.z / 2 + UnderCube.position.z);
+
+            Vector3 CurrentCubeLeftEdge = -CurrentCubeRightEdge;
+            Vector3 UnderCubeLeftEdge = -UnderCubeRightEdge;
+
+            float DistanceBetweenRight = Vector3.Distance(CurrentCubeRightEdge, UnderCubeRightEdge);
+            float DistanceBetweenLeft = Vector3.Distance(CurrentCubeLeftEdge, UnderCubeLeftEdge);
+
+            if (DistanceBetweenRight > 0)
+            {
+                _cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                _cube.transform.localScale = new Vector3(currentCube.transform.localScale.x, currentCube.transform.localScale.y, currentCube.transform.localScale.z - (DistanceBetweenRight / 2));
+                _cube.transform.position = new Vector3(currentCube.transform.position.x, currentCube.transform.position.y, currentCube.transform.position.z);
+                _cube.transform.parent = CubesParent;
+                Destroy(currentCube);
+            }
+        }
+
+        else
+        {
+            Vector3 CurrentCubeRightEdge = new Vector3(currentCube.transform.localScale.x / 2 + currentCube.transform.position.x, currentCube.transform.position.y, 0);
+            Vector3 UnderCubeRightEdge = new Vector3(UnderCube.localScale.x / 2 + UnderCube.position.x, UnderCube.position.y, 0);
+
+            Vector3 CurrentCubeLeftEdge = -CurrentCubeRightEdge;
+            Vector3 UnderCubeLeftEdge = -UnderCubeRightEdge;
+
+            float DistanceBetweenRight = Vector3.Distance(CurrentCubeRightEdge, UnderCubeRightEdge);
+            float DistanceBetweenLeft = Vector3.Distance(CurrentCubeLeftEdge, UnderCubeLeftEdge);
+
+            if (DistanceBetweenRight > 0)
+            {
+                _cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                _cube.transform.localScale = new Vector3(currentCube.transform.localScale.x - (DistanceBetweenRight / 2), currentCube.transform.localScale.y, currentCube.transform.localScale.z);
+                _cube.transform.position = new Vector3(currentCube.transform.position.x, currentCube.transform.position.y, currentCube.transform.position.z);
+                _cube.transform.parent = CubesParent;
+                Destroy(currentCube);
+            }
+        }
+
+        //Destroy(currentCube);
     }
 }
